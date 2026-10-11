@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PickMyPC - System Builder & Compatibility Checker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="theme-light">
+  <!-- Top Global Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <a href="#" class="brand-logo">
+          <div class="logo-icon">
+            <i data-lucide="cpu"></i>
+          </div>
+          <div class="logo-text">
+            <span class="logo-title">PART<span class="highlight">PICKER</span></span>
+            <span class="logo-subtitle">PC System Builder</span>
+          </div>
+        </a>
+
+        <nav class="nav-links">
+          <a href="#partsTable" class="nav-link active" id="navSystemBuilder"><i data-lucide="wrench"></i> System Builder</a>
+          <a href="#gamingPerformanceSection" class="nav-link" id="navGaming"><i data-lucide="gamepad-2"></i> Gaming FPS</a>
+          <a href="#builds-showcase" class="nav-link" id="navShowcase"><i data-lucide="sparkles"></i> Completed Builds</a>
+          <a href="#guides" class="nav-link" id="navGuides"><i data-lucide="book-open"></i> Build Guides</a>
+        </nav>
+      </div>
+
+      <div class="nav-right">
+        <div class="country-selector-wrap">
+          <i data-lucide="globe" class="country-icon"></i>
+          <select id="countrySelect" class="country-select" title="Select Country & Real Market Prices">
+            <option value="US">🇺🇸 USA ($)</option>
+            <option value="UA">🇺🇦 Ukraine (₴)</option>
+            <option value="IT">🇮🇹 Italy (€)</option>
+            <option value="DE">🇩🇪 Germany (€)</option>
+            <option value="GB">🇬🇧 United Kingdom (£)</option>
+            <option value="FR">🇫🇷 France (€)</option>
+            <option value="ES">🇪🇸 Spain (€)</option>
+            <option value="EU">🇪🇺 Europe (€)</option>
+          </select>
+        </div>
+
+        <div class="condition-selector-wrap">
+          <i data-lucide="tag" class="condition-icon"></i>
+          <select id="conditionSelect" class="condition-select" title="Filter New vs Used Hardware Deals">
+            <option value="all">🏷️ All Parts (New & Used)</option>
+            <option value="new">✨ Brand New Retail</option>
+            <option value="used">♻️ Used & Refurbished</option>
+          </select>
+        </div>
+
+        <div class="search-box">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" id="globalSearch" placeholder="Search CPU, GPU, RAM, SSD..." />
+        </div>
+
+        <button id="themeToggleBtn" class="btn btn-theme-toggle" title="Switch Theme (White / Dark)">
+          <i data-lucide="moon" id="themeIcon"></i>
+          <span id="themeToggleLabel">Dark Mode</span>
+        </button>
+
+        <button id="shareBuildBtn" class="btn btn-secondary">
+          <i data-lucide="share-2"></i> Share / Export
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sticky Stats / Summary Bar -->
+  <section class="status-bar-container">
+    <div class="status-bar">
+      <!-- Compatibility Badge -->
+      <div id="compatStatusBadge" class="compat-badge compat-green">
+        <div class="badge-icon">
+          <i data-lucide="shield-check" id="compatIcon"></i>
+        </div>
+        <div class="badge-content">
+          <div class="badge-title" id="compatText">Compatibility: No issues or incompatibilities found.</div>
+          <div class="badge-subtext" id="compatSubtext">All sockets, form-factors, and power requirements match.</div>
+        </div>
+      </div>
+
+      <!-- Wattage, Cost & Used Savings Counters -->
+      <div class="stats-group">
+        <div class="stat-card">
+          <div class="stat-label"><i data-lucide="zap"></i> Estimated Wattage</div>
+          <div class="stat-value" id="totalWattage">0 W</div>
+        </div>
+        <div class="stat-card price-card">
+          <div class="stat-label"><i data-lucide="dollar-sign"></i> Total Cost</div>
+          <div class="stat-value" id="totalPrice">$0.00</div>
+        </div>
+        <div class="stat-card savings-card" id="savingsCard" style="display: none;">
+          <div class="stat-label"><i data-lucide="piggy-bank"></i> Used Savings</div>
+          <div class="stat-value" id="totalSavings">$0.00</div>
+        </div>
+        <div class="stat-card fps-card" id="statusFpsCard" onclick="const s = document.getElementById('gamingPerformanceSection'); if(s) s.scrollIntoView({ behavior: 'smooth' });" title="Click to view real-world gaming FPS benchmarks" style="cursor: pointer;">
+          <div class="stat-label"><i data-lucide="gamepad-2"></i> Est. Gaming FPS</div>
+          <div class="stat-value" id="statusFpsValue">Calculating...</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main System Builder Content Area -->
+  <main class="builder-container">
+    <div class="builder-header">
+      <div class="header-titles">
+        <div class="title-with-badge">
+          <h1>Current Part List</h1>
+          <div class="market-badge" id="countryMarketPill">
+            <span class="market-flag" id="countryMarketFlag">🇺🇸</span>
+            <span class="market-text" id="countryMarketText">Region: <strong>United States</strong> • Prices in USD ($) from Amazon, Newegg, Best Buy</span>
+          </div>
+        </div>
+        <p class="subtitle">Select your hardware components below. Real-time compatibility & power checks update automatically with localized market prices.</p>
+      </div>
+      <div class="header-actions">
+        <!-- Preset Quick Picks -->
+        <div class="dropdown-container">
+          <button class="btn btn-outline" id="presetMenuBtn">
+            <i data-lucide="layers"></i> Load Preset Build <i data-lucide="chevron-down" class="btn-arrow"></i>
+          </button>
+          <div class="dropdown-menu" id="presetDropdown">
+            <div class="dropdown-header">🎯 In-Game Graphics Quality Presets</div>
+            <div class="dropdown-item" data-preset="budget_1080p">
+              <span class="preset-name">🟢 Low Graphics Preset PC (<span id="dropPrice_budget_1080p">~$550</span>)</span>
+              <span class="preset-desc">Smooth 1080p on Low / Competitive Settings • Ryzen 5500 + RX 6600</span>
+            </div>
+            <div class="dropdown-item" data-preset="esports_1080p">
+              <span class="preset-name">🟡 Medium Graphics Preset PC (<span id="dropPrice_esports_1080p">~$920</span>)</span>
+              <span class="preset-desc">Solid 100+ FPS on Medium Settings • Ryzen 7600X + RX 7600 XT 16GB</span>
+            </div>
+            <div class="dropdown-item" data-preset="midrange">
+              <span class="preset-name">🔵 High Graphics Preset PC (<span id="dropPriceMidrange">~$1,450</span>)</span>
+              <span class="preset-desc">144+ FPS on High Settings (1440p) • Ryzen 7600X + RTX 4070 Super 12GB</span>
+            </div>
+            <div class="dropdown-item" data-preset="enthusiast">
+              <span class="preset-name">🟣 Ultra Graphics Preset PC (<span id="dropPriceEnthusiast">~$2,850</span>)</span>
+              <span class="preset-desc">Maxed Ultra Settings & Ray Tracing (4K/1440p) • Ryzen 7800X3D + RTX 4080 Super</span>
+            </div>
+            <div class="dropdown-item" data-preset="titan_4k">
+              <span class="preset-name">👑 Extreme Ultra 4K Titan (<span id="dropPrice_titan_4k">~$4,150</span>)</span>
+              <span class="preset-desc">Zero-Compromise 4K Ultra Path Tracing • Ryzen 9800X3D + RTX 4090 24GB</span>
+            </div>
+
+            <div class="dropdown-header">⚙️ Alternative & Specialized Builds</div>
+            <div class="dropdown-item" data-preset="used_budget">
+              <span class="preset-name">♻️ Used Market Value King (<span id="dropPriceUsedBudget">~$390</span>)</span>
+              <span class="preset-desc">Budget 1080p on Verified Pre-Owned Deals • Ryzen 3600 + GTX 1660 Super</span>
+            </div>
+            <div class="dropdown-item" data-preset="amd_pure_1440p">
+              <span class="preset-name">🔴 High/Ultra All-AMD 20GB (<span id="dropPrice_amd_pure_1440p">~$1,650</span>)</span>
+              <span class="preset-desc">Raw Raster & High VRAM • Ryzen 7700X + RX 7900 XT 20GB</span>
+            </div>
+            <div class="dropdown-item" data-preset="raytracing_1440p">
+              <span class="preset-name">✨ High/Ultra RT & DLSS 3.5 (<span id="dropPrice_raytracing_1440p">~$2,050</span>)</span>
+              <span class="preset-desc">DLSS 3.5 Frame Gen • i7-14700K + RTX 4070 Ti Super 16GB</span>
+            </div>
+            <div class="dropdown-item" data-preset="sff_mini_itx">
+              <span class="preset-name">🎒 High Graphics Mini-ITX SFF (<span id="dropPrice_sff_mini_itx">~$1,520</span>)</span>
+              <span class="preset-desc">Compact Living Room SFF Console Killer • Ryzen 7600 + RTX 4070 Super</span>
+            </div>
+            <div class="dropdown-item" data-preset="creator_workstation">
+              <span class="preset-name">🎬 Ultra 4K / UE5 Workstation (<span id="dropPrice_creator_workstation">~$3,350</span>)</span>
+              <span class="preset-desc">3D Rendering & Game Dev • i9-14900K + RTX 4080 Super + 64GB DDR5</span>
+            </div>
+          </div>
+        </div>
+
+        <button id="clearBuildBtn" class="btn btn-outline-danger" title="Clear all chosen components">
+          <i data-lucide="trash-2"></i> Clear List
+        </button>
+      </div>
+    </div>
+
+    <!-- System Builder Table -->
+    <div class="table-wrapper">
+      <table class="parts-table" id="partsTable">
+        <thead>
+          <tr>
+            <th class="col-component">Component</th>
+            <th class="col-selection">Selection</th>
+            <th class="col-specs">Key Specifications</th>
+            <th class="col-price">Base</th>
+            <th class="col-promo">Promo / Shipping</th>
+            <th class="col-merchant">Merchant</th>
+            <th class="col-total">Price</th>
+            <th class="col-actions">Action</th>
+          </tr>
+        </thead>
+        <tbody id="partsTableBody">
+          <!-- Dynamically Rendered by app.js -->
+        </tbody>
+        <tfoot>
+          <tr class="table-total-row">
+            <td colspan="6" class="text-right"><strong>Subtotal & Estimated Total:</strong></td>
+            <td id="tableFooterTotal" class="total-figure">$0.00</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Warnings & Compatibility Notes Box -->
+    <section class="compatibility-notes-card" id="compatNotesCard">
+      <div class="compat-header">
+        <i data-lucide="info"></i>
+        <h3>Compatibility Notes & Diagnostics</h3>
+      </div>
+      <ul class="notes-list" id="compatNotesList">
+        <li><strong>Note:</strong> Some physical dimension constraints (such as CPU cooler height vs. case clearance) are generally verified based on standard specifications.</li>
+      </ul>
+    </section>
+
+    <!-- Gaming Performance & Real-World FPS Estimator Section -->
+    <section class="gaming-performance-section" id="gamingPerformanceSection">
+      <div class="perf-header-wrap">
+        <div class="perf-title-group">
+          <div class="perf-pill-badge"><i data-lucide="gamepad-2"></i> Real-World Hardware Benchmarks</div>
+          <h2>Estimated Gaming Performance & FPS</h2>
+          <p class="subtitle">Physics-accurate frame rates across popular gaming engines based on your chosen CPU, GPU & RAM specifications.</p>
+        </div>
+        <div class="perf-controls">
+          <div class="control-unit">
+            <span class="control-label">Resolution:</span>
+            <div class="toggle-pill-group" id="perfResToggles">
+              <button type="button" class="perf-toggle-btn" data-res="1080p">1080p (FHD)</button>
+              <button type="button" class="perf-toggle-btn active" data-res="1440p">1440p (QHD)</button>
+              <button type="button" class="perf-toggle-btn" data-res="4k">4K (UHD)</button>
+            </div>
+          </div>
+          <div class="control-unit">
+            <span class="control-label">Graphics Preset:</span>
+            <div class="toggle-pill-group" id="perfPresetToggles">
+              <button type="button" class="perf-toggle-btn" data-quality="low">Low</button>
+              <button type="button" class="perf-toggle-btn" data-quality="medium">Medium</button>
+              <button type="button" class="perf-toggle-btn" data-quality="high">High</button>
+              <button type="button" class="perf-toggle-btn active" data-quality="ultra">Ultra</button>
+            </div>
+          </div>
+          <div class="control-unit">
+            <span class="control-label">Upscaling & Frame Gen:</span>
+            <div class="toggle-pill-group" id="perfUpscaleToggles">
+              <button type="button" class="perf-toggle-btn active" data-upscale="native">Native</button>
+              <button type="button" class="perf-toggle-btn" data-upscale="quality">DLSS / FSR Quality</button>
+              <button type="button" class="perf-toggle-btn" data-upscale="perf">DLSS / FSR Performance</button>
+              <button type="button" class="perf-toggle-btn" data-upscale="framegen">✨ Frame Gen (DLSS 3 / FSR 3)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State when CPU/GPU not selected -->
+      <div class="perf-empty-card" id="perfEmptyState" style="display: none;">
+        <i data-lucide="cpu"></i>
+        <h3>Select a CPU & Graphics Card to Calculate FPS</h3>
+        <p>Choose components in the system builder table above to generate simulated real-world gaming performance benchmarks.</p>
+      </div>
+
+      <!-- Active Benchmarks View -->
+      <div id="perfActiveView">
+        <!-- Summary Dashboard Banner -->
+        <div class="perf-summary-banner">
+          <div class="tier-col">
+            <div class="tier-pill tier-a" id="perfTierBadge">Tier A</div>
+            <h3 id="perfTierTitle">1440p High Refresh Rate Champion</h3>
+            <p id="perfTierDesc">Smooth 100–165+ FPS in modern titles at high graphical presets.</p>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi-box">
+              <div class="kpi-label"><i data-lucide="gauge"></i> Avg. Gaming FPS</div>
+              <div class="kpi-value" id="perfKpiAvgFps">-- FPS</div>
+            </div>
+            <div class="kpi-box">
+              <div class="kpi-label"><i data-lucide="shield-check"></i> 1% Low Stability</div>
+              <div class="kpi-value" id="perfKpiLowFps">-- FPS</div>
+            </div>
+            <div class="kpi-box kpi-bottleneck">
+              <div class="kpi-label"><i data-lucide="scale"></i> Bottleneck Balance</div>
+              <div class="kpi-value" id="perfKpiBottleneck">Optimal Balance</div>
+              <div class="kpi-sub" id="perfKpiBottleDesc">GPU utilized to maximum potential</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Popular & AAA Games FPS Cards Grid -->
+        <div class="perf-games-grid" id="perfGameCardsGrid">
+          <!-- Dynamically populated by gaming_benchmarks.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Popular Community Configurations Section -->
+    <section class="showcase-section" id="builds-showcase">
+      <div class="section-heading">
+        <h2>Popular Community Configurations</h2>
+        <p>Pre-configured, battle-tested system builds ready to customize.</p>
+      </div>
+      <div class="showcase-grid">
+        <!-- 1. Used Value Champion -->
+        <div class="showcase-card" onclick="loadPreset('used_budget')">
+          <div class="card-badge badge-used">♻️ Verified Used Deal</div>
+          <h3>Used Value Champion 1080p</h3>
+          <p class="card-price" id="showcasePriceUsedBudget">$389.90</p>
+          <p class="card-summary">Ryzen 5 3600, GTX 1660 Super 6GB, 16GB DDR4, 1TB NVMe. Maximum budget-to-performance ratio.</p>
+          <button type="button" class="btn btn-sm btn-outline" onclick="event.stopPropagation(); loadPreset('used_budget');">Load This Build</button>
+        </div>
+
+        <!-- 2. Budget Esports 1080p -->
+        <div class="showcase-card" onclick="loadPreset('budget')">
+          <div class="card-badge badge-1080p">1080p Esports</div>
+          <h3>Budget Esports & 1080p</h3>
+          <p class="card-price" id="showcasePriceBudget">$649.90</p>
+          <p class="card-summary">Ryzen 5 5600, Radeon RX 6600 8GB, 16GB DDR4, 1TB NVMe Gen4. Ideal for Fortnite, Valorant & CS2.</p>
+          <button type="button" class="btn btn-sm btn-outline" onclick="event.stopPropagation(); loadPreset('budget');">Load This Build</button>
+        </div>
+
+        <!-- 3. Sweet Spot 1440p Gaming (Featured) -->
+        <div class="showcase-card featured" onclick="loadPreset('midrange')">
+          <div class="card-badge badge-popular">⭐ Most Popular</div>
+          <h3>Sweet Spot 1440p Gaming</h3>
+          <p class="card-price" id="showcasePriceMidrange">$1,449.88</p>
+          <p class="card-summary">Ryzen 5 7600X, RTX 4070 Super 12GB, 32GB DDR5-6000, 1TB Gen4 SSD, 750W Gold ATX 3.0.</p>
+          <button type="button" class="btn btn-sm btn-primary" onclick="event.stopPropagation(); loadPreset('midrange');">Load This Build</button>
+        </div>
+
+        <!-- 4. 4K Ray-Tracing Monster -->
+        <div class="showcase-card" onclick="loadPreset('enthusiast')">
+          <div class="card-badge badge-4k">4K Enthusiast</div>
+          <h3>4K Ray-Tracing Monster</h3>
+          <p class="card-price" id="showcasePriceEnthusiast">$2,869.80</p>
+          <p class="card-summary">Ryzen 7 7800X3D, RTX 4080 Super 16GB, 32GB DDR5, 2TB 990 Pro, 850W Gold, Lian Li O11.</p>
+          <button type="button" class="btn btn-sm btn-outline" onclick="event.stopPropagation(); loadPreset('enthusiast');">Load This Build</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PC Graphics Preset Configurations Section -->
+    <section class="showcase-section" id="graphics-presets-showcase">
+      <div class="section-heading">
+        <h2>PC Graphics Preset Configurations</h2>
+        <p>Targeted PC configurations tuned specifically for Low, Medium, High, Ultra, and 4K Max graphic fidelity.</p>
+      </div>
+      <div class="showcase-grid">
+        <!-- Low Graphics Preset -->
+        <div class="showcase-card" onclick="loadPreset('budget_1080p')">
+          <div class="card-badge badge-1080p">🟢 Low Graphics Preset</div>
+          <h3>Low Graphics Preset PC</h3>
+          <p class="card-price" id="showcasePrice_budget_1080p">$549.90</p>
+          <p class="card-summary">Target: 60-100 FPS on Low / Competitive settings. Ryzen 5 5500, Radeon RX 6600 8GB, 16GB DDR4, 1TB NVMe.</p>
+          <button type="button" class="btn btn-sm btn-outline" onclick="event.stopPropagation(); loadPreset('budget_1080p');">Load Low Preset</button>
+        </div>
+
+        <!-- Medium Graphics Preset -->
+        <div class="showcase-card" onclick="loadPreset('esports_1080p')">
+          <div class="card-badge badge-esports">🟡 Medium Graphics Preset</div>
+          <h3>Medium Graphics Preset PC</h3>
+          <p class="card-price" id="showcasePrice_esports_1080p">$919.90</p>
+          <p class="card-summary">Target: 100-144+ FPS on Medium settings. Ryzen 5 7600X, Radeon RX 7600 XT 16GB, 32GB DDR5-6000.</p>
+          <button type="button" class="btn btn-sm btn-outline" onclick="event.stopPropagation(); loadPreset('esports_1080p');">Load Medium Preset</button>
+        </div>
+
+        <!-- High Graphics Preset (Featured) -->
+        <div class="showcase-card featured" onclick="loadPreset('midrange')">
+          <div class="card-badge badge-popular">🔵 High Graphics Preset</div>
+          <h3>High Graphics Preset PC</h3>
+          <p class="card-price" id="showcasePrice_high_preset">$1,449.88</p>
+          <p class="card-summary">Target: 135+ FPS on High / 1440p settings. Ryzen 5 7600X, RTX 4070 Super 12GB, 32GB DDR5, 1TB SN850X.</p>
+          <button type="button" class="btn btn-sm btn-primary" onclick="event.stopPropagation(); loadPreset('midrange');">Load High Preset</button>
+        </div>
+
+        <!-- Ultra Graphics Preset -->
+        <div class="showcase-card" onclick="loadPreset('enthusiast')">
+          <div class="card-badge badge-4k">🟣 Ultra Graphics Preset</div>
+          <h3>Ultra Graphics Preset PC</h3>
+          <p class="card-price" id="showcasePrice_ultra_preset">$2,869.80</p>
+          <p class="card-summary">Target: Maxed Ultra & Ray Tracing (4K/1440p). Ryzen 7 7800X3D, RTX 4080 Super 16GB, 32GB DDR5, 2TB 990 Pro.</p>
+          <button type="button" class="btn btn-sm btn-outline" onclick="event.stopPropagation(); loadPreset('enthusiast');">Load Ultra Preset</button>
+        </div>
+
+        <!-- Extreme 4K Titan God Tier -->
+        <div class="showcase-card showcase-titan" onclick="loadPreset('titan_4k')">
+          <div class="card-badge badge-titan">👑 4K Path-Tracing • 165 FPS</div>
+          <h3>The God Tier 4K Titan</h3>
+          <p class="card-price" id="showcasePrice_titan_4k">$4,149.90</p>
+          <p class="card-summary">Ryzen 7 9800X3D, RTX 4090 24GB, 64GB DDR5, 2TB Gen5 + 4TB SSD, Hyte Y70 4K.</p>
+          <button type="button" class="btn btn-sm btn-outline" onclick="event.stopPropagation(); loadPreset('titan_4k');">Load This Build</button>
+        </div>
+
+        <!-- Creator & UE5 Workstation -->
+        <div class="showcase-card" onclick="loadPreset('creator_workstation')">
+          <div class="card-badge badge-workstation">🎬 4K/8K • 3D & UE5 Dev</div>
+          <h3>Creator & 3D 4K Workstation</h3>
+          <p class="card-price" id="showcasePrice_creator_workstation">$3,349.90</p>
+          <p class="card-summary">Core i9-14900K 24-Core, RTX 4080 Super, 64GB DDR5, 4TB 990 Pro, Fractal North.</p>
+          <button type="button" class="btn btn-sm btn-outline" onclick="event.stopPropagation(); loadPreset('creator_workstation');">Load This Build</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Build Guides Section -->
+    <section class="showcase-section" id="guides">
+      <div class="section-heading">
+        <h2>Expert PC Build Guides & Compatibility Tips</h2>
+        <p>Essential knowledge for assembling, budgeting, and optimizing your custom PC.</p>
+      </div>
+      <div class="guides-grid">
+        <div class="guide-card">
+          <div class="guide-icon"><i data-lucide="cpu"></i></div>
+          <div class="guide-content">
+            <h4>CPU & Socket Matching</h4>
+            <p>AMD AM5 supports Ryzen 7000/9000 with DDR5 only. Intel LGA1700 supports 12th–14th Gen. Check BIOS versions for newer chips.</p>
+          </div>
+        </div>
+        <div class="guide-card">
+          <div class="guide-icon"><i data-lucide="zap"></i></div>
+          <div class="guide-content">
+            <h4>Power Supply Headroom</h4>
+            <p>Add 150W+ above estimated system draw for transient power spikes. Modern GPUs (RTX 40-series) benefit from ATX 3.0 PCIe 5.0 cables.</p>
+          </div>
+        </div>
+        <div class="guide-card">
+          <div class="guide-icon"><i data-lucide="tag"></i></div>
+          <div class="guide-content">
+            <h4>Secondary Market Safety</h4>
+            <p>When buying used on OLX, Subito, or eBay, verify buyer protection, inspect GPU fan bearings, and run stress tests (FurMark/Cinebench).</p>
+          </div>
+        </div>
+        <div class="guide-card">
+          <div class="guide-icon"><i data-lucide="hard-drive"></i></div>
+          <div class="guide-content">
+            <h4>Storage & RAM Sweet Spots</h4>
+            <p>DDR5-6000 CL30 is optimal for Ryzen 7000/9000. For OS & games, PCIe 4.0 NVMe SSDs provide instant loading and DirectStorage support.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Part Selector Modal / Catalog Browser -->
+  <div class="modal-overlay" id="partPickerModal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon" id="modalCategoryIcon"><i data-lucide="cpu"></i></div>
+          <div>
+            <h2 id="modalCategoryTitle">Choose A CPU</h2>
+            <span class="modal-counter" id="modalProductCount">Showing 12 compatible parts</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="modalCloseBtn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Filter Sidebar -->
+        <aside class="modal-sidebar">
+          <div class="filter-group">
+            <label class="filter-label" for="partSearchInput">Search Part</label>
+            <div class="filter-input-wrap">
+              <i data-lucide="search"></i>
+              <input type="text" id="partSearchInput" placeholder="Filter by name or model...">
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">Condition</label>
+            <div class="condition-pill-wrap" id="modalConditionPills">
+              <button type="button" class="cond-pill active" data-cond="all">All Deals</button>
+              <button type="button" class="cond-pill" data-cond="new">✨ New</button>
+              <button type="button" class="cond-pill" data-cond="used">♻️ Used Deals</button>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-header-flex">
+              <label class="filter-label">Max Price</label>
+              <span class="filter-val-badge" id="priceRangeValue">$2500</span>
+            </div>
+            <input type="range" id="priceRangeSlider" min="20" max="2500" step="10" value="2500">
+          </div>
+
+          <div class="filter-group" id="manufacturerFilterGroup">
+            <label class="filter-label">Manufacturer</label>
+            <div class="checkbox-list" id="manufacturerCheckboxList">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <div class="filter-group" id="dynamicSpecFilterGroup">
+            <!-- Dynamically populated per category (e.g. Socket for CPU/Mobos, Chipset for GPU) -->
+          </div>
+
+          <div class="filter-group">
+            <label class="checkbox-item">
+              <input type="checkbox" id="compatFilterOnly" checked>
+              <span>Hide Incompatible Parts</span>
+            </label>
+          </div>
+
+          <button id="resetFiltersBtn" class="btn btn-sm btn-ghost">Reset Filters</button>
+        </aside>
+
+        <!-- Product Table View -->
+        <section class="modal-results">
+          <div class="results-table-wrap">
+            <table class="catalog-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th id="catalogDynamicCol1">Core / Speed</th>
+                  <th id="catalogDynamicCol2">TDP / Spec</th>
+                  <th>Rating</th>
+                  <th>Price</th>
+                  <th class="text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="catalogTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share / Export Modal -->
+  <div class="modal-overlay" id="exportModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i data-lucide="file-text"></i>
+          <h2>Export & Share Part List</h2>
+        </div>
+        <button class="modal-close-btn" id="exportModalCloseBtn"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-content-pad">
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="reddit">Reddit Markdown</button>
+          <button class="tab-btn" data-tab="text">Plain Text</button>
+          <button class="tab-btn" data-tab="json">Raw JSON</button>
+        </div>
+        <textarea id="exportTextArea" readonly rows="12" class="code-export-box"></textarea>
+        <div class="modal-footer-flex">
+          <span class="copy-hint" id="copyNotification"></span>
+          <button class="btn btn-primary" id="copyExportBtn">
+            <i data-lucide="copy"></i> Copy to Clipboard
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <p>© 2026 <strong>PickMyPC</strong>. Front-end inspired by PCPartPicker for custom PC enthusiasts.</p>
+      <div class="footer-links">
+        <a href="#">Privacy</a> • <a href="#">Terms</a> • <a href="#">Hardware Database</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <script src="data.js"></script>
+  <script src="gaming_benchmarks.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
